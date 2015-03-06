@@ -6,14 +6,15 @@ def diff(order, coefficients, x):
     s = sum([coefficients[i]*(order-i)*(x**(order-i-1)) for i in range(order)])
     return s
 
+
 class Integrate(object):
-    def Trapezoid(self, order, coefficients, low, high, interval = 1e-3):
+    def Trapezoid(self, order, coefficients, low, high, interval):
         N = (high - low)/interval
         I = sum([2*f(order, coefficients, low + (i*interval)) for i in range(1, int(N))])
         I += (f(order, coefficients, low) + f(order, coefficients, high))
         return (I*(high - low))/(2*N)
 
-    def Simpson(self, order, coefficients, low, high, interval = 1e-3):
+    def Simpson(self, order, coefficients, low, high, interval):
         N = (high - low)/(2*interval)
         I = sum([4*f(order, coefficients, low + (i*interval)) if i%2==1 else 2*f(order, coefficients, low + (i*interval)) for i in range(1, int(2*N))])
         I += (f(order, coefficients, low) + f(order, coefficients, high))
@@ -25,7 +26,7 @@ class Integrate(object):
         elif method == 'simpson':
             return self.Simpson(order, coefficients, low, high, interval)
 
-#Gauss-Siedel iterations not done yet
+
 class LinearSystemSolver(object):
     def Gauss(self, A, b):
         n, x = len(A), []
@@ -66,18 +67,32 @@ class LinearSystemSolver(object):
                 return None
             x.append(A[i][n]/A[i][i])
         return list(reversed(x))
+
+    import numpy as np
+     
+    def GaussSiedel(self, A, b, epsilon):
+        A = np.array(A)
+        b = np.array(b)
+        L = np.tril(A)
+        U = A - L
+        x = np.ones(len(b))
+        i = 0
+        while i < 500 and not np.allclose(np.dot(A, x), b, epsilon):
+            x = np.dot(np.linalg.inv(L), b - np.dot(U, x))
+            i+=1
+        return x
     
-    def solve(self, A, b, method):
+    def solve(self, A, b, method, epsilon = 1e-6):
         if method == 'gauss':
             return self.Gauss(A, b)
         elif method == 'gauss-jordan':
             return self.GaussJordan(A, b)
         elif method == 'gauss-siedel':
-            return self.GaussSiedel(A, b)
+            return self.GaussSiedel(A, b, epsilon)
 
 
 class PolynomialSolver(object):
-    def BisectionSearch(self, order, coefficients, low, high, epsilon = 1e-6):
+    def BisectionSearch(self, order, coefficients, low, high, epsilon):
         num = 0
         while (high-low)>=epsilon and num<500:
             mid = (low+high)/2
@@ -88,14 +103,14 @@ class PolynomialSolver(object):
             num += 1
         return mid
 
-    def Secant(self, order, coefficients, low, high, epsilon = 1e-6):
+    def Secant(self, order, coefficients, low, high, epsilon):
         num, x0, x1, x2 = 0, 1, 2, 3
         while abs(f(order, coefficients, x1))>=epsilon and num<500:
             x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
             num += 1
         return x1
 
-    def secantRF(self, order, coefficients, epsilon = 1e-6):
+    def secantRF(self, order, coefficients, epsilon):
     num, x0, x1, x2 = 0, 1, 2, 8
     while abs(f(order, coefficients, x1))>=epsilon and num<500:
         x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
@@ -104,7 +119,7 @@ class PolynomialSolver(object):
         num += 1
     return x1
     
-    def NewtonRaphson(self, order, coefficients, low, high, epsilon = 1e-6):
+    def NewtonRaphson(self, order, coefficients, low, high, epsilon):
         num, x0, x1 = 0, low, high
         while abs(f(order, coefficients, x0))>=epsilon and num<500:
             x1, x0 = (x0 - (f(order, coefficients, x0)/diff(order, coefficients, x0))), x1
@@ -113,13 +128,13 @@ class PolynomialSolver(object):
 
     def solve(self, order, coefficients, method, low, high, epsilon = 1e-6):
         if method == 'bisection':
-            return self.BisectionSearch(order, coefficients, low, high, epsilon = 0.0001)
+            return self.BisectionSearch(order, coefficients, low, high, epsilon)
         elif method == 'secant':
-            return self.Secant(order, coefficients, low, high, epsilon = 0.0001)
+            return self.Secant(order, coefficients, low, high, epsilon)
         elif method == 'secantrf':
-            return self.SecantRF(order, coefficients, low, high, epsilon = 0.0001)
+            return self.SecantRF(order, coefficients, low, high, epsilon)
         elif method == 'newtonraphson':
-            return self.NewtonRaphson(order, coefficients, low, high, epsilon = 0.0001)
+            return self.NewtonRaphson(order, coefficients, low, high, epsilon)
 
 
 #Newton's method not done
