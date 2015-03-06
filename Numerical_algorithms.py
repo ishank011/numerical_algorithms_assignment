@@ -76,9 +76,8 @@ class LinearSystemSolver(object):
             return self.GaussSiedel(A, b)
 
 
-#Regula Falsi method not done yet
 class PolynomialSolver(object):
-    def BisectionSearch(order, coefficients, low, high, epsilon = 1e-6):
+    def BisectionSearch(self, order, coefficients, low, high, epsilon = 1e-6):
         num = 0
         while (high-low)>=epsilon and num<500:
             mid = (low+high)/2
@@ -89,14 +88,23 @@ class PolynomialSolver(object):
             num += 1
         return mid
 
-    def Secant(order, coefficients, low, high, epsilon = 1e-6):
+    def Secant(self, order, coefficients, low, high, epsilon = 1e-6):
         num, x0, x1, x2 = 0, 1, 2, 3
         while abs(f(order, coefficients, x1))>=epsilon and num<500:
             x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
             num += 1
         return x1
+
+    def secantRF(self, order, coefficients, epsilon = 1e-6):
+    num, x0, x1, x2 = 0, 1, 2, 8
+    while abs(f(order, coefficients, x1))>=epsilon and num<500:
+        x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
+        while f(order, coefficients, x2)*f(order, coefficients, x1) > 0:
+            x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
+        num += 1
+    return x1
     
-    def NewtonRaphson(order, coefficients, low, high, epsilon = 1e-6):
+    def NewtonRaphson(self, order, coefficients, low, high, epsilon = 1e-6):
         num, x0, x1 = 0, low, high
         while abs(f(order, coefficients, x0))>=epsilon and num<500:
             x1, x0 = (x0 - (f(order, coefficients, x0)/diff(order, coefficients, x0))), x1
@@ -105,20 +113,20 @@ class PolynomialSolver(object):
 
     def solve(self, order, coefficients, method, low, high, epsilon = 1e-6):
         if method == 'bisection':
-            return BisectionSearch(order, coefficients, low, high, epsilon = 0.0001)
+            return self.BisectionSearch(order, coefficients, low, high, epsilon = 0.0001)
         elif method == 'secant':
-            return Secant(order, coefficients, low, high, epsilon = 0.0001)
+            return self.Secant(order, coefficients, low, high, epsilon = 0.0001)
         elif method == 'secantrf':
-            return SecantRF(order, coefficients, low, high, epsilon = 0.0001)
+            return self.SecantRF(order, coefficients, low, high, epsilon = 0.0001)
         elif method == 'newtonraphson':
-            return NewtonRaphson(order, coefficients, low, high, epsilon = 0.0001)
+            return self.NewtonRaphson(order, coefficients, low, high, epsilon = 0.0001)
 
 
 #Newton's method not done
 class Interpolate(object):
     from functools import reduce
     
-    def Lagarange(x_values, y_values, x):
+    def Lagarange(self, x_values, y_values, x):
         n = len(x_values)
         def basis(j):
             p = [(x - x_values[k])/(x_values[j] - x_values[k]) for k in range(n) if k!=j]
