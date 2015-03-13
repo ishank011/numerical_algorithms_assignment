@@ -178,6 +178,8 @@ class Interpolate:
         return (list(result))                                               
 
 
+import numpy as np
+
 class LPsolver():
 
     def solve(self,a,b,c):
@@ -191,7 +193,7 @@ class LPsolver():
         arr=np.insert(arr,len(a)+l_b,b,1)
         B=np.array([0]*l_b)
         C=np.array(a+[0]*l_b)
-        bx=range(l_a,l_a+l_b)
+        bx=list(range(l_a,l_a+l_b))
         while(1):
             maxpos=[]
             minpos=[]
@@ -223,7 +225,8 @@ class LPsolver():
         for i in range(len(bx)):
             if bx[i]<l_a:
                 x[bx[i]]=arr[i,-1]
-        x=map(int,x)
+        x=list(map(int,x))
 
         x.append(sum([x[i]*a[i] for i in range(l_a)]))
+        x[-1]=(x[-1],)
         return x
