@@ -8,17 +8,21 @@ def diff(order, coefficients, x):
 
 
 class Integrate(object):
+    def __init__(self):
+        self.N = None
+        self.I = None
+        
     def Trapezoid(self, order, coefficients, low, high, interval):
-        N = (high - low)/interval
-        I = sum([2*f(order, coefficients, low + (i*interval)) for i in range(1, int(N))])
-        I += (f(order, coefficients, low) + f(order, coefficients, high))
-        return (I*(high - low))/(2*N)
+        self.N = (high - low)/interval
+        self.I = sum([2*f(order, coefficients, low + (i*interval)) for i in range(1, int(self.N))])
+        self.I += (f(order, coefficients, low) + f(order, coefficients, high))
+        return (self.I*(high - low))/(2*self.N)
 
     def Simpson(self, order, coefficients, low, high, interval):
-        N = (high - low)/(2*interval)
-        I = sum([4*f(order, coefficients, low + (i*interval)) if i%2==1 else 2*f(order, coefficients, low + (i*interval)) for i in range(1, int(2*N))])
-        I += (f(order, coefficients, low) + f(order, coefficients, high))
-        return (I*(high - low))/(6*N)
+        self.N = (high - low)/(2*interval)
+        self.I = sum([4*f(order, coefficients, low + (i*interval)) if i%2==1 else 2*f(order, coefficients, low + (i*interval)) for i in range(1, int(2*self.N))])
+        self.I += (f(order, coefficients, low) + f(order, coefficients, high))
+        return (self.I*(high - low))/(6*self.N)
     
     def solve(self, order, coefficients, low, high, method, interval = 1e-3):
         if method == 'trapezoid':
@@ -27,9 +31,14 @@ class Integrate(object):
             return self.Simpson(order, coefficients, low, high, interval)
 
 
+import numpy as np
+
 class LinearSystemSolver(object):
+    def __init__(self):
+        self.x = None
+        
     def Gauss(self, A, b):
-        n, x = len(A), []
+        n, self.x = len(A), []
         for i in range(n):
             A[i].append(b[i])
         for i in range(1, n):
@@ -44,12 +53,12 @@ class LinearSystemSolver(object):
         for i in range(n-1, -1, -1):
             if A[i][i] == 0:
                 return None
-            s = sum([A[i][j]*x[n-j-1] for j in range(i+1, n)])
-            x.append((A[i][n]-s)/A[i][i])
-        return list(reversed(x))
+            s = sum([A[i][j]*self.x[n-j-1] for j in range(i+1, n)])
+            self.x.append((A[i][n]-s)/A[i][i])
+        return list(reversed(self.x))
 
     def GaussJordan(self, A, b):
-        n, x = len(A), []
+        n, self.x = len(A), []
         for i in range(n):
             A[i].append(b[i])
         for i in range(1, n+1):
@@ -65,22 +74,20 @@ class LinearSystemSolver(object):
         for i in range(n-1, -1, -1):
             if A[i][i] == 0:
                 return None
-            x.append(A[i][n]/A[i][i])
-        return list(reversed(x))
+            self.x.append(A[i][n]/A[i][i])
+        return list(reversed(self.x))
 
-    import numpy as np
-     
     def GaussSiedel(self, A, b, epsilon):
         A = np.array(A)
         b = np.array(b)
         L = np.tril(A)
         U = A - L
-        x = np.ones(len(b))
+        self.x = np.ones(len(b))
         i = 0
-        while i < 500 and not np.allclose(np.dot(A, x), b, epsilon):
-            x = np.dot(np.linalg.inv(L), b - np.dot(U, x))
+        while i < 500 and not np.allclose(np.dot(A, self.x), b, epsilon):
+            self.x = np.dot(np.linalg.inv(L), b - np.dot(U, self.x))
             i+=1
-        return x
+        return self.x
     
     def solve(self, A, b, method, epsilon = 1e-6):
         if method == 'gauss':
@@ -162,7 +169,8 @@ class Interpolate:
                 s=s+(str(result[i])+'x^'+str(i)+'+ ')
             else:
                 s=s+(str(result[i]))
-        return s                                             
+        return s                        
+        
     def Newton(self,L,M):                                                   
       
         from numpy import array
