@@ -118,13 +118,13 @@ class PolynomialSolver(object):
         return x1
 
     def secantRF(self, order, coefficients, epsilon):
-    num, x0, x1, x2 = 0, 1, 2, 8
-    while abs(f(order, coefficients, x1))>=epsilon and num<500:
-        x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
-        while f(order, coefficients, x2)*f(order, coefficients, x1) > 0:
+        num, x0, x1, x2 = 0, 1, 2, 8
+        while abs(f(order, coefficients, x1))>=epsilon and num<500:
             x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
-        num += 1
-    return x1
+            while f(order, coefficients, x2)*f(order, coefficients, x1) > 0:
+                x2, x1, x0 = (x1 - ((x1-x0)*f(order, coefficients, x1))/(f(order, coefficients, x1)-f(order, coefficients, x0))), x2, x1
+            num += 1
+        return x1
     
     def NewtonRaphson(self, order, coefficients, low, high, epsilon):
         num, x0, x1 = 0, low, high
